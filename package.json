@@ -1,10 +1,9 @@
 {
   "name": "@atomist/sdm-pack-rcca-bitbucket",
   "version": "0.1.0",
-  "description": "my new project",
+  "description": "RCCA Atomist extension pack for Bitbucket",
   "author": {
-    "name": "Lieven Doclo",
-    "email": "lieven@atomist.com"
+    "name": "Atomist"
   },
   "license": "Apache-2.0",
   "homepage": "https://github.com/atomist/sdm-pack-rcca-bitbucket#readme",

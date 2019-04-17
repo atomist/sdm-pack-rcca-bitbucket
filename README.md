@@ -2,28 +2,7 @@
   <img src="https://images.atomist.com/sdm/SDM-Logo-Dark.png">
 </p>
 
-# @atomist-seeds/sdm-pack
-
-[![atomist sdm goals](http://badge.atomist.com/T29E48P34/atomist-seeds/sdm-pack/24939d09-fe00-4a7a-8d52-0fc4c9672100)](https://app.atomist.com/workspace/T29E48P34)
-[![npm version](https://img.shields.io/npm/v/@atomist-seeds/sdm-pack.svg)](https://www.npmjs.com/package/@atomist-seeds/sdm-pack)
-
-A starting point for an extension pack for an [Atomist][atomist]
-software delivery machine (SDM).
-
-Software delivery machines enable you to control your delivery process
-in code.  Think of it as an API for your software delivery.  See the
-[Atomist documentation][atomist-doc] for more information on the
-concept of a software delivery machine and how to create and develop
-an SDM.
-
-[atomist-doc]: https://docs.atomist.com/ (Atomist Documentation)
-
-## Getting started
-
-See the [Developer Quick Start][atomist-quick] to jump straight to
-creating an SDM.
-
-[atomist-quick]: https://docs.atomist.com/quick-start/ (Atomist - Developer Quick Start)
+# @atomist/sdm-pack-rcca-bitbucket
 
 ## Contributing
 
@@ -61,7 +40,7 @@ channel in the [Atomist community Slack workspace][slack].
 
 If you find a problem, please create an [issue][].
 
-[issue]: https://github.com/atomist-seeds/sdm-pack/issues
+[issue]: https://github.com/atomist-seeds/sdm-pack-rcca-bitbucket/issues
 
 ## Development
 
