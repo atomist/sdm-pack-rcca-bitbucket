@@ -40,13 +40,11 @@ import { autoMergeOnReview } from "./AutoMergeOnReview";
 
 export const AtomistGeneratedLabel = "atomist:generated";
 
-export const AutoMergeLabel = "auto-merge:on-approve";
-export const AutoMergeCheckSuccessLabel = "auto-merge:on-check-success";
-export const AutoMergeTag = `[${AutoMergeLabel}]`;
-export const AutoMergeCheckSuccessTag = `[${AutoMergeCheckSuccessLabel}]`;
+export const AutoMergeTag = `[auto-merge:on-approve]`;
+export const AutoMergeCheckSuccessTag = `[auto-merge:on-check-success]`;
 
 export const AutoMergeMethodLabel = "auto-merge-method:";
-export const AutoMergeMethods = ["merge", "rebase", "squash"];
+export const AutoMergeMethods = ["merge-commit", "fast-forward", "squash"];
 
 export const OrgTokenParameters: ParametersObject<{ token: string }>
     = { token: { declarationType: DeclarationType.Secret, uri: Secrets.OrgToken } };
@@ -71,7 +69,7 @@ export async function executeAutoMerge(pr: AutoMergeOnReview.PullRequest,
                                        creds: ProjectOperationCredentials): Promise<HandlerResult> {
     if (!!pr) {
         // 1. at least one approved review if PR isn't set to merge on successful build
-        if (isPrTagged(pr, AutoMergeLabel, AutoMergeTag)) {
+        if (isPrTagged(pr, AutoMergeTag)) {
             if (!pr.reviews || pr.reviews.length === 0) {
                 return Success;
             } else if (pr.reviews.some(r => r.state !== "approved")) {
@@ -113,8 +111,8 @@ export async function executeAutoMerge(pr: AutoMergeOnReview.PullRequest,
 * ${reviewComment(pr)}
 * ${statusComment(pr)}
 
-[${AtomistGeneratedLabel}] [${isPrTagged(
-                    pr, AutoMergeCheckSuccessLabel, AutoMergeCheckSuccessTag) ? AutoMergeCheckSuccessLabel : AutoMergeLabel}]`;
+[${AtomistGeneratedLabel}] ${isPrTagged(
+                    pr, AutoMergeCheckSuccessTag) ? AutoMergeCheckSuccessTag : AutoMergeTag}`;
 
                 await api.issue_tracker.createComment({
                     username: pr.repo.owner,
@@ -139,18 +137,12 @@ export async function executeAutoMerge(pr: AutoMergeOnReview.PullRequest,
 }
 
 export function isPrAutoMergeEnabled(pr: AutoMergeOnReview.PullRequest): boolean {
-    return isPrTagged(pr, AutoMergeLabel, AutoMergeTag)
-        || isPrTagged(pr, AutoMergeCheckSuccessLabel, AutoMergeCheckSuccessTag);
+    return isPrTagged(pr, AutoMergeTag)
+        || isPrTagged(pr, AutoMergeCheckSuccessTag);
 }
 
 function isPrTagged(pr: AutoMergeOnReview.PullRequest,
-                    label: string = AutoMergeLabel,
                     tag: string = AutoMergeTag): boolean {
-    // 0. check labels
-    if (pr.labels && pr.labels.some(l => l.name === label)) {
-        return true;
-    }
-
     // 1. check body and title for auto merge marker
     if (isTagged(pr.title, tag) || isTagged(pr.body, tag)) {
         return true;
@@ -194,8 +186,8 @@ function reviewComment(pr: AutoMergeOnReview.PullRequest): string {
 }
 
 function statusComment(pr: AutoMergeOnReview.PullRequest): string {
-    if (pr.head && pr.head.statuses && pr.head.statuses.length > 0) {
-        return `${pr.head.statuses.length} successful ${pr.head.statuses.length > 1 ? "checks" : "check"}`;
+    if (pr.head && pr.head.builds && pr.head.builds.length > 0) {
+        return `${pr.head.builds.length} successful ${pr.head.builds.length > 1 ? "checks" : "check"}`;
     } else {
         return "No checks";
     }
