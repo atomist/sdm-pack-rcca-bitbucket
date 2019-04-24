@@ -28,7 +28,7 @@ This page details all runtime OSS dependencies of `@atomist/sdm-pack-rcca-bitbuc
 |[GPL-3.0](#gpl-30)|3|
 |[ISC](#isc)|136|
 |[MIT AND BSD-3-Clause](#mit-and-bsd-3-clause)|1|
-|[MIT](#mit)|942|
+|[MIT](#mit)|941|
 |[Unlicense](#unlicense)|1|
 |[WTFPL](#wtfpl)|4|
 
@@ -542,7 +542,6 @@ MIT License - [http://www.opensource.org/licenses/MIT](http://www.opensource.org
 |`base64-js`|`1.3.0`|T. Jameson Little|[https://github.com/beatgammit/base64-js](https://github.com/beatgammit/base64-js)|
 |`base`|`0.11.2`|Jon Schlinkert|[https://github.com/node-base/base](https://github.com/node-base/base)|
 |`binary-extensions`|`1.13.1`|Sindre Sorhus|[https://github.com/sindresorhus/binary-extensions](https://github.com/sindresorhus/binary-extensions)|
-|`bitbucket`|`1.12.0`|MunifTanjim|[https://github.com/MunifTanjim/node-bitbucket](https://github.com/MunifTanjim/node-bitbucket)|
 |`bluebird`|`3.5.3`|Petka Antonov|[https://github.com/petkaantonov/bluebird](https://github.com/petkaantonov/bluebird)|
 |`bluebird`|`3.5.4`|Petka Antonov|[https://github.com/petkaantonov/bluebird](https://github.com/petkaantonov/bluebird)|
 |`body-parser`|`1.18.3`||[https://github.com/expressjs/body-parser](https://github.com/expressjs/body-parser)|
