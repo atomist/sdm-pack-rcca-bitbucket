@@ -16,7 +16,10 @@
 
 import {
     automationClientInstance,
+    configurationValue,
+    DefaultHttpClientFactory,
     HandlerResult,
+    HttpClientFactory,
     HttpMethod,
     logger,
     ProjectOperationCredentials,
@@ -70,9 +73,23 @@ function getBasicHeader(creds: ProjectOperationCredentials): string {
     return `Basic ${base64}`;
 }
 
+async function getCurrentPRVersion(apiBaseUrl: string, creds: ProjectOperationCredentials, owner: string, name: string, pr: number): Promise<number> {
+    const apiCall = `${apiBaseUrl}/projects/${owner}/repos/${name}/pull-requests/${pr}/merge`;
+    const httpClient = configurationValue<HttpClientFactory>("http.client.factory").create();
+    const response = await httpClient.exchange(apiCall, {
+        method: HttpMethod.Get,
+        headers: {
+            Authorization: getBasicHeader(creds),
+        },
+    });
+    const prBody = JSON.parse(response.body as string);
+    return prBody.version as number;
+}
+
 async function mergePullRequest(creds: ProjectOperationCredentials, apiBaseUrl: string, pr: AutoMergeOnReview.PullRequest): Promise<void> {
-    const apiCall = `/projects/${pr.repo.owner}/repos/${pr.repo.name}/pull-requests/${pr.number}/merge`;
-    const httpClient = automationClientInstance().configuration.http.client.factory.create(apiBaseUrl);
+    const currentVersion = await getCurrentPRVersion(apiBaseUrl, creds, pr.repo.owner, pr.repo.name, pr.number);
+    const apiCall = `${apiBaseUrl}/projects/${pr.repo.owner}/repos/${pr.repo.name}/pull-requests/${pr.number}/merge?version=${currentVersion}`;
+    const httpClient = configurationValue<HttpClientFactory>("http.client.factory").create();
     await httpClient.exchange(apiCall, {
         method: HttpMethod.Post,
         headers: {
@@ -82,8 +99,8 @@ async function mergePullRequest(creds: ProjectOperationCredentials, apiBaseUrl: 
 }
 
 async function createMergedPullRequestComment(creds: ProjectOperationCredentials, apiBaseUrl: string, pr: AutoMergeOnReview.PullRequest): Promise<void> {
-    const apiCall = `/projects/${pr.repo.owner}/repos/${pr.repo.name}/pull-requests/${pr.number}/comments`;
-    const httpClient = automationClientInstance().configuration.http.client.factory.create(apiBaseUrl);
+    const apiCall = `${apiBaseUrl}/projects/${pr.repo.owner}/repos/${pr.repo.name}/pull-requests/${pr.number}/comments`;
+    const httpClient = configurationValue<HttpClientFactory>("http.client.factory").create();
     const body = {
         text: `Pull request auto merged by Atomist.
 
