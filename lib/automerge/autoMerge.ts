@@ -20,6 +20,7 @@ import {
     ProjectOperationCredentials,
     Secrets,
     Success,
+    TokenCredentials,
 } from "@atomist/automation-client";
 import {
     DeclarationType,
@@ -103,7 +104,7 @@ export async function executeAutoMerge(pr: AutoMergeOnReview.PullRequest,
                         merge_strategy: mergeMethod(pr),
                         message: `Auto merge pull request #${pr.number} from ${pr.repo.owner}/${pr.repo.name}`,
                         close_source_branch: true,
-                        type: "", // FIXME
+                        type: "pullrequest_merge_parameters",
                     },
                 });
                 const body = `Pull request auto merged by Atomist.
@@ -123,7 +124,7 @@ export async function executeAutoMerge(pr: AutoMergeOnReview.PullRequest,
                             raw: body,
                             markup: "markdown",
                         },
-                        type: "", // FIXME
+                        type: "issue_comment",
                     },
                 });
                 return Success;
@@ -208,9 +209,11 @@ function apiUrl(repo: any): string {
 }
 
 function bitbucket(creds: ProjectOperationCredentials, url: string): Bitbucket {
-    const clientOptions = {
+    const clientOptions: Bitbucket.Options = {
         baseUrl: url,
-        headers: {},
+        headers: {
+            Authorization: `Bearer ${(creds as TokenCredentials).token}`,
+        },
         options: {
             timeout: 10,
         },
