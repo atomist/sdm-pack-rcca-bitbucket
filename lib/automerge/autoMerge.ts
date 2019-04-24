@@ -15,27 +15,26 @@
  */
 
 import {
+    automationClientInstance,
     HandlerResult,
+    HttpMethod,
     logger,
     ProjectOperationCredentials,
     Secrets,
     Success,
-    TokenCredentials,
 } from "@atomist/automation-client";
+import { BasicAuthCredentials } from "@atomist/automation-client/lib/operations/common/BasicAuthCredentials";
 import {
     DeclarationType,
     ExtensionPack,
     metadata,
     ParametersObject,
 } from "@atomist/sdm";
-import Bitbucket = require("bitbucket");
 import {
     AutoMergeOnReview,
     BuildStatus,
 } from "../typings/types";
-import {
-    autoMergeOnBuild,
-} from "./AutoMergeOnBuild";
+import { autoMergeOnBuild } from "./AutoMergeOnBuild";
 import { autoMergeOnPullRequest } from "./AutoMergeOnPullRequest";
 import { autoMergeOnReview } from "./AutoMergeOnReview";
 
@@ -61,8 +60,46 @@ export function bitbucketAutoMergeSupport(): ExtensionPack {
     };
 }
 
-async function canBeMerged(gpr: Bitbucket.Response<Bitbucket.Schema.Pullrequest>): Promise<boolean> {
-    return false;
+async function canBeMerged(creds: ProjectOperationCredentials, apiBaseUrl: string, pr: AutoMergeOnReview.PullRequest): Promise<boolean> {
+    return true;
+}
+
+function getBasicHeader(creds: ProjectOperationCredentials): string {
+    const basicAuth = creds as BasicAuthCredentials;
+    const base64 = Buffer.from(`${basicAuth.username}:${basicAuth.password}`).toString("base64");
+    return `Basic ${base64}`;
+}
+
+async function mergePullRequest(creds: ProjectOperationCredentials, apiBaseUrl: string, pr: AutoMergeOnReview.PullRequest): Promise<void> {
+    const apiCall = `/projects/${pr.repo.owner}/repos/${pr.repo.name}/pull-requests/${pr.number}/merge`;
+    const httpClient = automationClientInstance().configuration.http.client.factory.create(apiBaseUrl);
+    await httpClient.exchange(apiCall, {
+        method: HttpMethod.Post,
+        headers: {
+            Authorization: getBasicHeader(creds),
+        },
+    });
+}
+
+async function createMergedPullRequestComment(creds: ProjectOperationCredentials, apiBaseUrl: string, pr: AutoMergeOnReview.PullRequest): Promise<void> {
+    const apiCall = `/projects/${pr.repo.owner}/repos/${pr.repo.name}/pull-requests/${pr.number}/comments`;
+    const httpClient = automationClientInstance().configuration.http.client.factory.create(apiBaseUrl);
+    const body = {
+        text: `Pull request auto merged by Atomist.
+
+* ${reviewComment(pr)}
+* ${statusComment(pr)}
+
+[${AtomistGeneratedLabel}] ${isPrTagged(
+            pr, AutoMergeCheckSuccessTag) ? AutoMergeCheckSuccessTag : AutoMergeTag}`,
+    };
+    await httpClient.exchange(apiCall, {
+        method: HttpMethod.Post,
+        headers: {
+            Authorization: getBasicHeader(creds),
+        },
+        body,
+    });
 }
 
 // tslint:disable-next-line:cyclomatic-complexity
@@ -88,48 +125,12 @@ export async function executeAutoMerge(pr: AutoMergeOnReview.PullRequest,
         }
 
         if (isPrAutoMergeEnabled(pr)) {
-            const api = bitbucket(creds, apiUrl(pr.repo));
-
-            const gpr = await api.pullrequests.get({
-                username: pr.repo.owner,
-                repo_slug: pr.repo.name,
-                pull_request_id: pr.number,
-            });
-            if (await canBeMerged(gpr)) {
-                await api.pullrequests.merge({
-                    username: pr.repo.owner,
-                    repo_slug: pr.repo.name,
-                    pull_request_id: pr.number.toString(),
-                    _body: {
-                        merge_strategy: mergeMethod(pr),
-                        message: `Auto merge pull request #${pr.number} from ${pr.repo.owner}/${pr.repo.name}`,
-                        close_source_branch: true,
-                        type: "pullrequest_merge_parameters",
-                    },
-                });
-                const body = `Pull request auto merged by Atomist.
-
-* ${reviewComment(pr)}
-* ${statusComment(pr)}
-
-[${AtomistGeneratedLabel}] ${isPrTagged(
-                    pr, AutoMergeCheckSuccessTag) ? AutoMergeCheckSuccessTag : AutoMergeTag}`;
-
-                await api.issue_tracker.createComment({
-                    username: pr.repo.owner,
-                    repo_slug: pr.repo.name,
-                    issue_id: pr.number.toString(),
-                    _body: {
-                        content: {
-                            raw: body,
-                            markup: "markdown",
-                        },
-                        type: "issue_comment",
-                    },
-                });
+            if (await canBeMerged(creds, apiUrl(pr.repo), pr)) {
+                await mergePullRequest(creds, apiUrl(pr.repo), pr);
+                await createMergedPullRequestComment(creds, apiUrl(pr.repo), pr);
                 return Success;
             } else {
-                logger.info("GitHub returned PR as not mergeable: '%j'", gpr.data);
+                logger.info("PR is not mergeable: '%j'", pr.number);
                 return Success;
             }
         }
@@ -194,8 +195,6 @@ function statusComment(pr: AutoMergeOnReview.PullRequest): string {
     }
 }
 
-export const DefaultGitHubApiUrl = "https://api.bitbucket.org/2.0";
-
 function apiUrl(repo: any): string {
     if (repo.org && repo.org.provider && repo.org.provider.apiUrl) {
         let providerUrl = repo.org.provider.apiUrl;
@@ -204,19 +203,6 @@ function apiUrl(repo: any): string {
         }
         return providerUrl;
     } else {
-        return DefaultGitHubApiUrl;
+        return undefined;
     }
-}
-
-function bitbucket(creds: ProjectOperationCredentials, url: string): Bitbucket {
-    const clientOptions: Bitbucket.Options = {
-        baseUrl: url,
-        headers: {
-            Authorization: `Bearer ${(creds as TokenCredentials).token}`,
-        },
-        options: {
-            timeout: 10,
-        },
-    };
-    return new Bitbucket(clientOptions);
 }
