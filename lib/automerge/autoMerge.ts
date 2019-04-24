@@ -51,7 +51,7 @@ export const OrgTokenParameters: ParametersObject<{ token: string }>
 
 export function bitbucketAutoMergeSupport(): ExtensionPack {
     return {
-        ...metadata("auto-merge"),
+        ...metadata("bitbucket-auto-merge"),
         configure: sdm => {
             sdm.addEvent(autoMergeOnBuild(sdm))
                 .addEvent(autoMergeOnPullRequest(sdm))
