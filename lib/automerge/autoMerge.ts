@@ -74,7 +74,7 @@ function getBasicHeader(creds: ProjectOperationCredentials): string {
 }
 
 async function getCurrentPRVersion(apiBaseUrl: string, creds: ProjectOperationCredentials, owner: string, name: string, pr: number): Promise<number> {
-    const apiCall = `${apiBaseUrl}/projects/${owner}/repos/${name}/pull-requests/${pr}/merge`;
+    const apiCall = `${apiBaseUrl}/projects/${owner}/repos/${name}/pull-requests/${pr}`;
     const httpClient = configurationValue<HttpClientFactory>("http.client.factory").create();
     const response = await httpClient.exchange(apiCall, {
         method: HttpMethod.Get,
