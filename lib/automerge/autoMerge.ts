@@ -93,7 +93,9 @@ async function mergePullRequest(creds: ProjectOperationCredentials, apiBaseUrl: 
     await httpClient.exchange(apiCall, {
         method: HttpMethod.Post,
         headers: {
-            Authorization: getBasicHeader(creds),
+            "Authorization": getBasicHeader(creds),
+            "Content-Type": "application/json",
+            "Accept": "application/json",
         },
     });
 }
