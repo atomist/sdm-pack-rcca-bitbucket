@@ -28,6 +28,9 @@ subscription autoMergeOnReview {
         by {
           login
         }
+        comments {
+          body
+        }
       }
       commits {
         message

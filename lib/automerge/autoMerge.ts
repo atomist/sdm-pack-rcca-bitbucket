@@ -161,14 +161,14 @@ export function isPrAutoMergeEnabled(pr: AutoMergeOnReview.PullRequest): boolean
 }
 
 function isPrTagged(pr: AutoMergeOnReview.PullRequest,
-                    tag: string = AutoMergeTag): boolean {
+                    tag: string): boolean {
     // 1. check body and title for auto merge marker
     if (isTagged(pr.title, tag) || isTagged(pr.body, tag)) {
         return true;
     }
 
     // 2. PR comment that contains the merger
-    if (pr.comments && pr.comments.some(c => isTagged(c.body, tag))) {
+    if (pr.reviews && pr.reviews.some(r => r.comments.some(c => isTagged(c.body, tag)))) {
         return true;
     }
 
