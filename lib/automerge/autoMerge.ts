@@ -82,7 +82,7 @@ async function getCurrentPRVersion(apiBaseUrl: string, creds: ProjectOperationCr
             Authorization: getBasicHeader(creds),
         },
     });
-    const prBody = JSON.parse(response.body as string);
+    const prBody = response.body as any;
     return prBody.version as number;
 }
 
@@ -168,7 +168,7 @@ function isPrTagged(pr: AutoMergeOnReview.PullRequest,
     }
 
     // 2. PR comment that contains the merger
-    if (pr.reviews && pr.reviews.some(r => r.comments.some(c => isTagged(c.body, tag)))) {
+    if (pr.reviews && pr.reviews.some(r => r.comments && r.comments.some(c => isTagged(c.body, tag)))) {
         return true;
     }
 

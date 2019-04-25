@@ -4,6 +4,15 @@
 
 # @atomist/sdm-pack-rcca-bitbucket
 
+## Usage
+
+### Auto merge support
+
+To add auto merging of PRs, add the following to your SDM configuration:
+
+```sdm.addExtensionPacks(bitbucketAutoMergeSupport())```
+
+
 ## Contributing
 
 Contributions to this project from community members are encouraged
